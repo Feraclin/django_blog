@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'blog.apps.BlogConfig',
 ]
 
 MIDDLEWARE = [
@@ -55,8 +56,8 @@ ROOT_URLCONF = 'django_blog.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
-        ,
+        'DIRS': [BASE_DIR / 'templates'],
+
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -82,7 +83,7 @@ DATABASES = {
         'USER': 'drf_blog',
         'PASSWORD': 'django_blog',
         'HOST': 'localhost',
-        'PORT': '5433',
+        'PORT': '5432',
     }
 }
 
@@ -127,3 +128,6 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+AUTH_USER_MODEL = 'blog.CustomUser'
