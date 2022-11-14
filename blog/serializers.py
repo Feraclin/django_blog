@@ -1,12 +1,11 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
 
-from blog.models import Post
+from .models import Post, CustomUser
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
+        model = CustomUser
         fields = ('id', 'username')
 
 
@@ -16,5 +15,17 @@ class PostSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class LentaSerializer(serializers.ModelSerializer):
-    raise NotImplementedError
+class UserPostsSerializer(serializers.ModelSerializer):
+    posts = PostSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'posts']
+
+
+class UserSubscriptionsSerializer(serializers.ModelSerializer):
+    readers = UserSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'username', 'readers']
