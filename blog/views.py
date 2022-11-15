@@ -1,7 +1,13 @@
 from rest_framework import generics, mixins, viewsets, permissions, views, response
 
-from .models import CustomUser
-from .serializers import UserSerializer, UserPostsSerializer, UserSubscriptionsSerializer
+from .models import CustomUser, Post, Feed
+from .pagination import PostsAPIListPagination
+from .serializers import UserSerializer, \
+                        UserSubscriptionsSerializer, \
+                        PostSerializer, \
+                        UserPostsSerializer, \
+                        FeedSerializer
+from .service import post_editor
 
 
 class UserListView(generics.ListAPIView):
@@ -11,34 +17,80 @@ class UserListView(generics.ListAPIView):
     serializer_class = UserSerializer
 
 
-class UsersPostsVIew(generics.ListAPIView):
+class PostsView(generics.ListAPIView):
     ''' Вывод списка постов
     '''
-    queryset = CustomUser.objects.all()
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    pagination_class = PostsAPIListPagination
+
+
+class ProfileView(generics.ListAPIView):
+    '''Просмотр профиля
+    '''
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = UserPostsSerializer
+    pagination_class = PostsAPIListPagination
+
+    def get_queryset(self):
+        return CustomUser.objects.filter(username=self.request.user)
 
 
-class UserPostsViewSet(mixins.CreateModelMixin,
+class FeedViewSet(mixins.UpdateModelMixin,
+                  mixins.ListModelMixin,
+                  viewsets.GenericViewSet):
+    '''Лента постов
+    '''
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = FeedSerializer
+    pagination_class = PostsAPIListPagination
+
+    def get_queryset(self):
+        return Feed.objects.filter(recipient=self.request.user).order_by('-id')
+
+
+class UserPostsViewSet(
                        mixins.RetrieveModelMixin,
                        mixins.UpdateModelMixin,
-                       mixins.DestroyModelMixin,
                        mixins.ListModelMixin,
                        viewsets.GenericViewSet):
-    '''Вывод списка постов полтзователя
+    '''Управление постами пользователя
     '''
-    queryset = CustomUser.objects.all()
-    serializer_class = UserPostsSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    serializer_class = PostSerializer
+
+    def get_queryset(self):
+        author = CustomUser.objects.get(username=self.request.user)
+        return Post.objects.filter(author=author)
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def post(self, request):
+        author = CustomUser.objects.get(username=self.request.user)
+        serializer = PostSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        post = serializer.save(author=author)
+        post_editor.create_post(users_lst=author.readers.all(),
+                                post=post)
+
+        return response.Response(serializer.data, status=201)
+
+    def delete(self, request):
+        author = CustomUser.objects.get(username=self.request.user)
+        post = Post.objects.get(id=request.data['id'])
+        post.delete()
+        return response.Response(status=200)
 
 
 class UserSubscriptionsViewSet(generics.ListAPIView):
-    """ Вывод списка подписок
+    """ Вывод списка подписчиков
     """
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = UserSubscriptionsSerializer
 
     def get_queryset(self):
         return CustomUser.objects.filter(username=self.request.user)
-
 
 class SubscriptionView(views.APIView):
     '''Управление подпиской
@@ -52,7 +104,7 @@ class SubscriptionView(views.APIView):
             author = CustomUser.objects.get(id=pk)
         except CustomUser.DoesNotExist:
             return response.Response(status=404)
-        user.readers.add(author)
+        author.readers.add(user)
         return response.Response(status=201)
 
     def delete(self, request, pk):
@@ -61,5 +113,5 @@ class SubscriptionView(views.APIView):
         except CustomUser.DoesNotExist:
             return response.Response(status=404)
         user = CustomUser.objects.get(username=self.request.user)
-        user.readers.remove(author)
+        author.readers.remove(user)
         return response.Response(status=204)

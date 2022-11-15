@@ -17,6 +17,7 @@ class Post(models.Model):
         ordering = ['-publish_date']
 
 
-# class ReadedPost(models.Model):
-#     reader = models.ForeignKey('auth.User', on_delete=models.CASCADE)
-#     post = models.ForeignKey('Post', on_delete=models.CASCADE)
+class Feed(models.Model):
+    recipient = models.ForeignKey(CustomUser, related_name='new_posts', on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, related_name='feed', on_delete=models.CASCADE)
+    post_readed = models.BooleanField(default=False)

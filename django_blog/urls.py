@@ -17,14 +17,15 @@ from django.contrib import admin
 from django.urls import path, include
 
 from blog.routers import router_blog
-from blog.views import UserListView, UsersPostsVIew, UserSubscriptionsViewSet, SubscriptionView
+from blog.views import UserListView, PostsView, UserSubscriptionsViewSet, SubscriptionView, ProfileView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/drf-auth/', include('rest_framework.urls')),
+    path('accounts/profile/', ProfileView.as_view()),
     path('api/v1/users', UserListView.as_view()),
-    path('api/v1/posts/', UsersPostsVIew.as_view(), name='user-post'),
-    path('api/v1/', include(router_blog.urls)),
+    path('api/v1/posts/', PostsView.as_view(), name='user-post'),
+    path('accounts/profile/', include(router_blog.urls)),
     path('api/v1/subscription', UserSubscriptionsViewSet.as_view()),
     path('api/v1/subscription/<int:pk>', SubscriptionView.as_view()),
 
