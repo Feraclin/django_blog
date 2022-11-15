@@ -15,6 +15,7 @@ class Post(models.Model):
 
     class Meta:
         ordering = ['-publish_date']
+        default_related_name = 'posts'
 
 
 class Feed(models.Model):

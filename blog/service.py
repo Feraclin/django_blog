@@ -11,7 +11,7 @@ class FeedPost:
         print(post)
         for user in users_lst:
             feed_post = Feed(recipient=user,
-                        post=post)
+                             post=post)
             feed_post.save()
 
     @staticmethod

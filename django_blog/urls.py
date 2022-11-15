@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import path, include
 
 from blog.routers import router_blog
-from blog.views import UserListView, PostsView, UserSubscriptionsViewSet, SubscriptionView, ProfileView
+from blog.views import UserListView, PostsView, UserSubscriptionsViewSet, SubscriptionView, ProfileView, RebuildFeedView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,5 +28,6 @@ urlpatterns = [
     path('accounts/profile/', include(router_blog.urls)),
     path('api/v1/subscription', UserSubscriptionsViewSet.as_view()),
     path('api/v1/subscription/<int:pk>', SubscriptionView.as_view()),
+    path('rebuildfeed', RebuildFeedView.as_view()),
 
 ]

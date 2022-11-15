@@ -46,7 +46,9 @@ class FeedViewSet(mixins.UpdateModelMixin,
     pagination_class = PostsAPIListPagination
 
     def get_queryset(self):
-        return Feed.objects.filter(recipient=self.request.user).order_by('-id')
+        # TODO: Переделать сортировку, сейчас костыль
+        # TODO: Добавить кеширование
+        return Feed.objects.filter(recipient=self.request.user).select_related('post').order_by('-post_id')
 
 
 class UserPostsViewSet(
@@ -92,6 +94,7 @@ class UserSubscriptionsViewSet(generics.ListAPIView):
     def get_queryset(self):
         return CustomUser.objects.filter(username=self.request.user)
 
+
 class SubscriptionView(views.APIView):
     '''Управление подпиской
     '''
@@ -115,3 +118,20 @@ class SubscriptionView(views.APIView):
         user = CustomUser.objects.get(username=self.request.user)
         author.readers.remove(user)
         return response.Response(status=204)
+
+
+class RebuildFeedView(views.APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    @staticmethod
+    def get(request):
+        return response.Response('Rebuild all feed')
+
+    @staticmethod
+    def post(request):
+        # Временно решение для перестроения ленты
+        all_posts = Post.objects.all()
+        for i in all_posts:
+            post_editor.create_post(users_lst=i.author.readers.all(),
+                                    post=i)
+        return response.Response(status=200)
