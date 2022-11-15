@@ -15,6 +15,7 @@ class UserListView(generics.ListAPIView):
     '''
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
+    pagination_class = PostsAPIListPagination
 
 
 class PostsView(generics.ListAPIView):
@@ -60,6 +61,7 @@ class UserPostsViewSet(
     '''
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     serializer_class = PostSerializer
+    pagination_class = PostsAPIListPagination
 
     def get_queryset(self):
         author = CustomUser.objects.get(username=self.request.user)
@@ -90,6 +92,7 @@ class UserSubscriptionsViewSet(generics.ListAPIView):
     """
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = UserSubscriptionsSerializer
+    pagination_class = PostsAPIListPagination
 
     def get_queryset(self):
         return CustomUser.objects.filter(username=self.request.user)

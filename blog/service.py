@@ -7,8 +7,6 @@ class FeedPost:
 
     @staticmethod
     def create_post(users_lst: List[CustomUser], post: Post) -> None:
-        print(users_lst)
-        print(post)
         for user in users_lst:
             feed_post = Feed(recipient=user,
                              post=post)

@@ -7,11 +7,19 @@ services:
     environment:
       POSTGRES_USER: drf_blog
       POSTGRES_PASSWORD: django_blog
-      POSTGRES_HOST: drf_blog_db
+      POSTGRES_DB: drf_blog_db
     ports:
       - '5432:5432'
     volumes:
       - pgdata:/data
+    networks:
+      - drf_blog_nw
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - '6080:8080'
     networks:
       - drf_blog_nw
 
@@ -24,11 +32,13 @@ services:
     build: .
     ports:
       - '8000:8000'
-    command: ['python3', 'manage.py', 'runserver', '0.0.0.0:8000']
     depends_on:
       - db
+    command:
+        sh -c "python ./manage.py migrate && python ./manage.py runserver"
     networks:
       - drf_blog_nw
+
 volumes:
   pgdata:
 
