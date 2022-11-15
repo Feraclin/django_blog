@@ -1,0 +1,37 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: drf_blog
+      POSTGRES_PASSWORD: django_blog
+      POSTGRES_HOST: drf_blog_db
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/data
+    networks:
+      - drf_blog_nw
+
+#  redis:
+#    image: redis
+#    restart: always
+
+  blog:
+    restart: always
+    build: .
+    ports:
+      - '8000:8000'
+    command: ['python3', 'manage.py', 'runserver', '0.0.0.0:8000']
+    depends_on:
+      - db
+    networks:
+      - drf_blog_nw
+volumes:
+  pgdata:
+
+networks:
+  drf_blog_nw:
+    driver: bridge
