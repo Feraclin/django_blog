@@ -2,14 +2,14 @@ from django.http import HttpResponse
 from rest_framework import generics, mixins, viewsets, permissions, views, response
 
 from .models import CustomUser, Post, Feed
-from .pagination import PostsAPIListPagination
+from .pagination import APIListPagination
 from .serializers import UserSerializer, \
                         UserSubscriptionsSerializer, \
                         PostSerializer, \
                         UserPostsSerializer, \
                         FeedSerializer
 from .service import post_editor
-from .tasks import send_feed
+from .tasks import send_feed, creater_feed
 
 
 def index(request):
@@ -22,7 +22,6 @@ class UserListView(generics.ListAPIView):
     '''
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
-    pagination_class = PostsAPIListPagination
 
 
 class PostsView(generics.ListAPIView):
@@ -30,7 +29,7 @@ class PostsView(generics.ListAPIView):
     '''
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    pagination_class = PostsAPIListPagination
+    pagination_class = APIListPagination
 
 
 class ProfileView(generics.ListAPIView):
@@ -38,7 +37,7 @@ class ProfileView(generics.ListAPIView):
     '''
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = UserPostsSerializer
-    pagination_class = PostsAPIListPagination
+    pagination_class = APIListPagination
 
     def get_queryset(self):
         return CustomUser.objects.filter(username=self.request.user)
@@ -51,12 +50,12 @@ class FeedViewSet(mixins.UpdateModelMixin,
     '''
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = FeedSerializer
-    pagination_class = PostsAPIListPagination
+    pagination_class = APIListPagination
 
     def get_queryset(self):
         # TODO: Переделать сортировку, сейчас костыль
         # TODO: Добавить кеширование
-        return Feed.objects.filter(recipient=self.request.user).select_related('post').order_by('-post_id')[:30]
+        return Feed.objects.filter(recipient=self.request.user).select_related('post').order_by('-post_id')[:500]
 
 
 class UserPostsViewSet(
@@ -68,7 +67,7 @@ class UserPostsViewSet(
     '''
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     serializer_class = PostSerializer
-    pagination_class = PostsAPIListPagination
+    pagination_class = APIListPagination
 
     def get_queryset(self):
         author = CustomUser.objects.get(username=self.request.user)
@@ -79,19 +78,24 @@ class UserPostsViewSet(
 
     def post(self, request):
         author = CustomUser.objects.get(username=self.request.user)
+        print(request.data)
         serializer = PostSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         post = serializer.save(author=author)
+        # creater_feed.delay(users_lst=author.readers.iterator(),
+        #                    post=post)
         post_editor.create_post(users_lst=author.readers.iterator(),
                                 post=post)
-
         return response.Response(serializer.data, status=201)
 
     def delete(self, request):
         author = CustomUser.objects.get(username=self.request.user)
         post = Post.objects.get(id=request.data['id'])
-        post.delete()
-        return response.Response(status=200)
+        if post.author == author:
+            post.delete()
+            return response.Response(status=200)
+        else:
+            return response.Response(status=403)
 
 
 class UserSubscriptionsViewSet(generics.ListAPIView):
@@ -99,7 +103,7 @@ class UserSubscriptionsViewSet(generics.ListAPIView):
     """
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = UserSubscriptionsSerializer
-    pagination_class = PostsAPIListPagination
+    pagination_class = APIListPagination
 
     def get_queryset(self):
         return CustomUser.objects.filter(username=self.request.user)
@@ -126,8 +130,11 @@ class SubscriptionView(views.APIView):
         except CustomUser.DoesNotExist:
             return response.Response(status=404)
         user = CustomUser.objects.get(username=self.request.user)
-        author.readers.remove(user)
-        return response.Response(status=204)
+        if user in author.readers:
+            author.readers.remove(user)
+            return response.Response(status=204)
+        else:
+            return response.Response(status=404)
 
 
 class RebuildFeedView(views.APIView):

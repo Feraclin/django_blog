@@ -13,10 +13,12 @@ import os
 import dotenv
 from pathlib import Path
 
+from celery.schedules import crontab
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-dotenv_file = os.path.join(BASE_DIR, ".env")
+dotenv_file = os.path.join(BASE_DIR, ".env.dev")
 if os.path.isfile(dotenv_file):
     dotenv.load_dotenv(dotenv_file)
 
@@ -27,9 +29,9 @@ if os.path.isfile(dotenv_file):
 SECRET_KEY = os.environ['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ['DEBUG']
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get('SERVERNAMES').split(' ')
 
 
 # Application definition
@@ -44,8 +46,9 @@ INSTALLED_APPS = [
     # added
     'rest_framework',
     'blog.apps.BlogConfig',
-    "debug_toolbar",
 ]
+if DEBUG:
+    INSTALLED_APPS.append("debug_toolbar")
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -56,8 +59,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # added
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
+
 ]
+if DEBUG:
+    MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware",)
 
 ROOT_URLCONF = 'django_blog.urls'
 
@@ -152,3 +157,16 @@ INTERNAL_IPS = [
 
 CELERY_BROKER_URL = os.environ["CELERY_BROKER_URL"]
 CELERY_RESULT_BACKEND = os.environ["CELERY_RESULT_BACKEND"]
+CELERY_BEAT_SCHEDULE = {
+      'add-every-30-seconds': {
+        'task': 'blog.tasks.send_feed',
+        'schedule': 5,
+        # 'schedule': crontab(minute=0, hour=0),
+            },
+        }
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 20
+}

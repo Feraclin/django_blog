@@ -19,18 +19,21 @@ from django.urls import path, include
 from blog.routers import router_blog
 from blog.views import UserListView, PostsView, UserSubscriptionsViewSet, SubscriptionView, ProfileView, \
     RebuildFeedView, index
+from .settings import DEBUG
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/drf-auth/', include('rest_framework.urls')),
+    path('accounts/drf-auth/', include('rest_framework.urls')),
     path('accounts/profile/', ProfileView.as_view()),
+    path('accounts/profile/', include(router_blog.urls)),
     path('api/v1/users', UserListView.as_view()),
     path('api/v1/posts/', PostsView.as_view(), name='user-post'),
-    path('accounts/profile/', include(router_blog.urls)),
     path('api/v1/subscription', UserSubscriptionsViewSet.as_view()),
     path('api/v1/subscription/<int:pk>', SubscriptionView.as_view()),
-    path('rebuildfeed', RebuildFeedView.as_view()),
-    path('__debug__/', include('debug_toolbar.urls')),
-    path('send_email', index)
+    path('rebuildfeed/', RebuildFeedView.as_view()),
+    path('send_email/', index),
 
 ]
+
+if DEBUG:
+    urlpatterns.append(path('__debug__/', include('debug_toolbar.urls')))
