@@ -1,5 +1,6 @@
 FROM python:3.10
-RUN apt update && apt -y install gettext-base
+RUN apt update && apt -y install gettext- \
+RUN python -m pip install --upgrade pip
 
 WORKDIR /app
 
