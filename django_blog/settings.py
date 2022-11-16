@@ -18,7 +18,7 @@ from celery.schedules import crontab
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-dotenv_file = os.path.join(BASE_DIR, ".env.dev")
+dotenv_file = os.path.join(BASE_DIR, ".env")
 if os.path.isfile(dotenv_file):
     dotenv.load_dotenv(dotenv_file)
 
@@ -160,8 +160,7 @@ CELERY_RESULT_BACKEND = os.environ["CELERY_RESULT_BACKEND"]
 CELERY_BEAT_SCHEDULE = {
       'add-every-30-seconds': {
         'task': 'blog.tasks.send_feed',
-        'schedule': 5,
-        # 'schedule': crontab(minute=0, hour=0),
+        'schedule': crontab(minute=0, hour=0),
             },
         }
 
