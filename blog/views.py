@@ -62,6 +62,7 @@ class UserPostsViewSet(
                        mixins.RetrieveModelMixin,
                        mixins.UpdateModelMixin,
                        mixins.ListModelMixin,
+                       mixins.CreateModelMixin,
                        viewsets.GenericViewSet):
     '''Управление постами пользователя
     '''
@@ -89,7 +90,11 @@ class UserPostsViewSet(
 
     def delete(self, request):
         author = CustomUser.objects.get(username=self.request.user)
-        post = Post.objects.get(id=request.data['id'])
+        try:
+            post = Post.objects.get(id=request.data['id'])
+        except Post.DoesNotExist:
+            return response.Response(status=404)
+
         if post.author == author:
             post.delete()
             return response.Response(status=200)
