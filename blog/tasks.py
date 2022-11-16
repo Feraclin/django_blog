@@ -1,9 +1,11 @@
 import json
+from typing import Iterator
 
+from blog.service import post_editor
 from celery import shared_task
 from django.core.mail import send_mail
 
-from blog.models import CustomUser, Feed
+from blog.models import CustomUser, Feed, Post
 from blog.serializers import FeedSerializerEmail
 
 
@@ -24,3 +26,8 @@ def send_feed() -> None:
         json_str = json.dumps(json_payload)
         send_email_task(email_address=user.email, message=f'{user.first_name} your feed are ready{json_str}')
 
+
+@shared_task()
+def creater_feed(users_lst: Iterator[CustomUser], post: Post):
+    post_editor.create_post(users_lst=users_lst,
+                            post=post)

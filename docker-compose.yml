@@ -7,7 +7,7 @@ services:
     env_file:
       - ./.env
     ports:
-      - '5433:5432'
+      - '5434:5432'
     volumes:
       - pgdata:/data
     networks:
@@ -24,6 +24,10 @@ services:
   redis:
     image: redis
     restart: always
+    ports:
+      - '6379:6379'
+    networks:
+      - drf_blog_nw
 
 
 
@@ -49,6 +53,17 @@ services:
       - redis
     command:
       sh -c "celery -A django_blog worker"
+    networks:
+      - drf_blog_nw
+
+  beat:
+    restart: always
+    build: .
+    depends_on:
+      - db
+      - redis
+    command:
+      sh -c "celery -A django_blog beat"
     networks:
       - drf_blog_nw
 
