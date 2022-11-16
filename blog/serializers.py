@@ -42,3 +42,11 @@ class FeedSerializer(serializers.ModelSerializer):
         model = Feed
         fields = ('id', 'title', 'text', 'publish_date', 'post_readed')
 
+
+class FeedSerializerEmail(serializers.ModelSerializer):
+    title = serializers.ReadOnlyField(source='post.title')
+    text = serializers.ReadOnlyField(source='post.description')
+
+    class Meta:
+        model = Feed
+        fields = ('title', 'text')

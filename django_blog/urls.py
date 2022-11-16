@@ -17,7 +17,8 @@ from django.contrib import admin
 from django.urls import path, include
 
 from blog.routers import router_blog
-from blog.views import UserListView, PostsView, UserSubscriptionsViewSet, SubscriptionView, ProfileView, RebuildFeedView
+from blog.views import UserListView, PostsView, UserSubscriptionsViewSet, SubscriptionView, ProfileView, \
+    RebuildFeedView, index
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,5 +31,6 @@ urlpatterns = [
     path('api/v1/subscription/<int:pk>', SubscriptionView.as_view()),
     path('rebuildfeed', RebuildFeedView.as_view()),
     path('__debug__/', include('debug_toolbar.urls')),
+    path('send_email', index)
 
 ]

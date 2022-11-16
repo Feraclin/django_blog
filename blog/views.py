@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from rest_framework import generics, mixins, viewsets, permissions, views, response
 
 from .models import CustomUser, Post, Feed
@@ -8,6 +9,12 @@ from .serializers import UserSerializer, \
                         UserPostsSerializer, \
                         FeedSerializer
 from .service import post_editor
+from .tasks import send_feed
+
+
+def index(request):
+    send_feed.delay()
+    return HttpResponse('Send!')
 
 
 class UserListView(generics.ListAPIView):
@@ -49,7 +56,7 @@ class FeedViewSet(mixins.UpdateModelMixin,
     def get_queryset(self):
         # TODO: Переделать сортировку, сейчас костыль
         # TODO: Добавить кеширование
-        return Feed.objects.filter(recipient=self.request.user).select_related('post').order_by('-post_id')
+        return Feed.objects.filter(recipient=self.request.user).select_related('post').order_by('-post_id')[:30]
 
 
 class UserPostsViewSet(
