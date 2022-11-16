@@ -59,7 +59,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # added
-
 ]
 if DEBUG:
     MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware",)
@@ -149,9 +148,14 @@ AUTH_USER_MODEL = 'blog.CustomUser'
 INTERNAL_IPS = [
     # ...
     "127.0.0.1",
+    '0.0.0.0',
+    'localhost',
     # ...
 ]
-
+if DEBUG:
+    import socket  # only if you haven't already imported this
+    hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+    INTERNAL_IPS = [ip[: ip.rfind(".")] + ".1" for ip in ips] + ["127.0.0.1", "10.0.2.2"]
 
 # CELERY PROJECT SET UP
 

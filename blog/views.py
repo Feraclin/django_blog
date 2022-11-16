@@ -71,14 +71,13 @@ class UserPostsViewSet(
 
     def get_queryset(self):
         author = CustomUser.objects.get(username=self.request.user)
-        return Post.objects.filter(author=author)
+        return Post.objects.filter(author=author).select_related('author')
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
     def post(self, request):
         author = CustomUser.objects.get(username=self.request.user)
-        print(request.data)
         serializer = PostSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         post = serializer.save(author=author)
