@@ -53,7 +53,7 @@ class FeedViewSet(mixins.UpdateModelMixin,
     pagination_class = APIListPagination
 
     def get_queryset(self):
-        # TODO: Переделать сортировку, сейчас костыль
+        # TODO: Переделать сортировку
         # TODO: Добавить кеширование
         return Feed.objects.filter(recipient=self.request.user).select_related('post').order_by('-post_id')[:500]
 
@@ -102,7 +102,7 @@ class UserPostsViewSet(
             return response.Response(status=403)
 
 
-class UserSubscriptionsViewSet(generics.ListAPIView):
+class UserSubscriptionsView(generics.ListAPIView):
     """ Вывод списка подписчиков
     """
     permission_classes = [permissions.IsAuthenticated]
@@ -134,7 +134,7 @@ class SubscriptionView(views.APIView):
         except CustomUser.DoesNotExist:
             return response.Response(status=404)
         user = CustomUser.objects.get(username=self.request.user)
-        if user in author.readers:
+        if user in author.readers.iterator():
             author.readers.remove(user)
             return response.Response(status=204)
         else:
@@ -153,6 +153,6 @@ class RebuildFeedView(views.APIView):
         # Временноe решение для перестроения ленты
         all_posts = Post.objects.iterator()
         for i in all_posts:
-            post_editor.create_post(users_lst=i.author.readers.all(),
+            post_editor.create_post(users_lst=i.author.readers.iterator(),
                                     post=i)
         return response.Response(status=200)

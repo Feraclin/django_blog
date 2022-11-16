@@ -20,7 +20,7 @@ from celery.schedules import crontab
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-dotenv_file = os.path.join(BASE_DIR, ".env.dev")
+dotenv_file = os.path.join(BASE_DIR, ".env")
 if os.path.isfile(dotenv_file):
     dotenv.load_dotenv(dotenv_file)
 
@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     # added
     'rest_framework',
     'blog.apps.BlogConfig',
+    'drf_yasg',
 ]
 if DEBUG:
     INSTALLED_APPS.append("debug_toolbar")

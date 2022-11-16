@@ -1,9 +1,30 @@
-Восстановление всей базы данных
+#### Проект Блог с лентой постов
 
-экспорт
+##### Технологии
 
-python manage.py dumpdata --exclude auth.permission --exclude contenttypes > ./db/db.json
+    DRF, Celery, Redis, POSTGRESQL
 
-импорт
+## Запуск
 
-python manage.py loaddata ./db/db.json
+
+##### 1) Создать настройки окружения и указать окружение в settings.py
+
+##### 2) Собрать контейнеры
+
+    docker-compose build
+
+##### 2) Запустить контейнер
+
+    docker-compose up
+    
+##### 3) Перейти по адресу
+
+    http://0.0.0.0:8080/swagger/
+
+
+### Тестирование
+
+    coverage run --omit=*/venv/*,*/migrations/*,*/django_blog/django_blog/*,*test*  manage.py test blog
+
+### Тестовая база данных в каталоге db дамп и sql
+
