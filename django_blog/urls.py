@@ -29,5 +29,6 @@ urlpatterns = [
     path('api/v1/subscription', UserSubscriptionsViewSet.as_view()),
     path('api/v1/subscription/<int:pk>', SubscriptionView.as_view()),
     path('rebuildfeed', RebuildFeedView.as_view()),
+    path('__debug__/', include('debug_toolbar.urls')),
 
 ]
