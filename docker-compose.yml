@@ -4,10 +4,6 @@ services:
   db:
     image: postgres
     restart: always
-#    environment:
-#      POSTGRES_USER: drf_blog
-#      POSTGRES_PASSWORD: django_blog
-#      POSTGRES_DB: drf_blog_db
     env_file:
       - ./.env
     ports:
@@ -25,9 +21,11 @@ services:
     networks:
       - drf_blog_nw
 
-#  redis:
-#    image: redis
-#    restart: always
+  redis:
+    image: redis
+    restart: always
+
+
 
   blog:
     restart: always
@@ -36,8 +34,21 @@ services:
       - '8080:8080'
     depends_on:
       - db
+      - redis
     command:
         sh -c "python ./manage.py migrate && python ./manage.py runserver 0.0.0.0:8080"
+    networks:
+      - drf_blog_nw
+
+
+  worker:
+    restart: always
+    build: .
+    depends_on:
+      - db
+      - redis
+    command:
+      sh -c "celery -A django_blog worker"
     networks:
       - drf_blog_nw
 
