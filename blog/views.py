@@ -75,7 +75,7 @@ class UserPostsViewSet(
         serializer = PostSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         post = serializer.save(author=author)
-        post_editor.create_post(users_lst=author.readers.all(),
+        post_editor.create_post(users_lst=author.readers.iterator(),
                                 post=post)
 
         return response.Response(serializer.data, status=201)
@@ -132,8 +132,8 @@ class RebuildFeedView(views.APIView):
 
     @staticmethod
     def post(request):
-        # Временно решение для перестроения ленты
-        all_posts = Post.objects.all()
+        # Временноe решение для перестроения ленты
+        all_posts = Post.objects.iterator()
         for i in all_posts:
             post_editor.create_post(users_lst=i.author.readers.all(),
                                     post=i)
