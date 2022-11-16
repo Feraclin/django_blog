@@ -10,6 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 import os
+import sys
+
 import dotenv
 from pathlib import Path
 
@@ -18,7 +20,7 @@ from celery.schedules import crontab
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-dotenv_file = os.path.join(BASE_DIR, ".env")
+dotenv_file = os.path.join(BASE_DIR, ".env.dev")
 if os.path.isfile(dotenv_file):
     dotenv.load_dotenv(dotenv_file)
 
@@ -96,9 +98,17 @@ DATABASES = {
         "PASSWORD": os.environ["POSTGRES_PASSWORD"],
         "HOST": os.environ["POSTGRES_HOST"],
         "PORT": os.environ["POSTGRES_PORT"],
+        'TEST': {
+                  # this gets you in-memory sqlite for tests, which is fast
+                  'ENGINE': 'django.db.backends.sqlite3',
+                }
     }
 }
 
+if 'test' in sys.argv and 'keepdb' in sys.argv:
+    # and this allows you to use --keepdb to skip re-creating the db,
+    # even faster!
+    DATABASES['default']['TEST']['NAME'] = './myproject.test.db.sqlite3'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
